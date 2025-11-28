@@ -25,6 +25,7 @@ public class JsCompiler {
     private static final String IGNORE_DIR = "src/main/js/test"; // 排除的目录（可选）
     private static String[] KEYWORDS = {}; // 关键字过滤（可选），空数组表示不过滤
     private static long FILE_SIZE_THRESHOLD = 0; // 文件大小阈值（KB），0表示不过滤
+    private static boolean CLOC_MODE = false; // 是否统计代码行数
 
     public static void main(String[] args) {
         // 检查是否需要显示帮助信息
@@ -58,9 +59,21 @@ public class JsCompiler {
             // 2. 逐个编译并覆盖源文件
             int successCount = 0;
             int failCount = 0;
+            long totalLineCount = 0; // 用于统计代码行数
+            
             for (File srcFile : jsFiles) {
                 if (compileAndOverwrite(srcFile)) {
                     successCount++;
+                    // 如果启用了CLOC模式，统计压缩后文件的代码行数
+                    if (CLOC_MODE) {
+                        try {
+                            long lineCount = countLinesOfCode(srcFile);
+                            totalLineCount += lineCount;
+                            System.out.println("  📊 代码行数: " + lineCount);
+                        } catch (IOException e) {
+                            System.err.println("  ⚠️ 统计行数失败: " + e.getMessage());
+                        }
+                    }
                 } else {
                     failCount++;
                 }
@@ -68,6 +81,11 @@ public class JsCompiler {
 
             // 3. 输出统计结果
             System.out.println("\n✅ 处理完成：成功 " + successCount + " 个，失败 " + failCount + " 个");
+            
+            // 如果启用了CLOC模式，输出总代码行数
+            if (CLOC_MODE && successCount > 0) {
+                System.out.println("📈 压缩后总代码行数: " + totalLineCount + " 行");
+            }
 
         } catch (Exception e) {
             System.err.println("❌ 整体执行失败：" + e.getMessage());
@@ -88,6 +106,7 @@ public class JsCompiler {
         System.out.println("  -root=根目录路径     配合-file使用，指定文件列表中的相对路径的根目录");
         System.out.println("  -keywords=关键字1,关键字2,关键字3  设置路径关键字过滤，默认: 无");
         System.out.println("  -size=文件大小阈值   设置文件大小阈值(KB)，超过该大小的文件才会被处理，默认: 0 ( 无限制)");
+        System.out.println("  -cloc               启用代码行数统计，统计压缩后文件的代码行数");
         System.out.println();
         System.out.println("注意: -dir 和 -file 参数不能同时使用");
         System.out.println();
@@ -97,6 +116,8 @@ public class JsCompiler {
         System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources -keywords=echarts,chart");
         System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources -size=100");
         System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources -keywords=echarts -size=50");
+        System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources -cloc");
+        System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources -keywords=echarts -cloc");
         System.out.println("  java -jar JsCompiler.jar -help");
     }
 
@@ -108,6 +129,7 @@ public class JsCompiler {
      * -size=文件大小阈值  // 设置文件大小阈值(KB)，超过该大小的文件才会被处理
      * -file=文件列表路径  // 从文本文件读取JS文件列表进行处理
      * -root=根目录路径  // 配合-file使用，指定文件列表中的相对路径的根目录
+     * -cloc  // 启用代码行数统计模式
      */
     private static void parseArguments(String[] args) {
         boolean hasDir = false;
@@ -134,6 +156,8 @@ public class JsCompiler {
                 FILE_LIST = arg.substring(6); // 提取文件列表路径
             } else if (arg.startsWith("-root=")) {
                 ROOT_DIR = arg.substring(6); // 提取根目录路径
+            } else if (arg.equals("-cloc")) {
+                CLOC_MODE = true; // 启用代码行数统计
             }
         }
         
@@ -164,6 +188,9 @@ public class JsCompiler {
             System.out.println("文件大小阈值: " + FILE_SIZE_THRESHOLD + " KB");
         } else {
             System.out.println("文件大小阈值: 无");
+        }
+        if (CLOC_MODE) {
+            System.out.println("代码行数统计: 启用");
         }
     }
 
@@ -325,5 +352,49 @@ public class JsCompiler {
             }
         }
         return jsFiles;
+    }
+
+    /**
+     * 统计文件的代码行数（排除空行和注释）
+     */
+    private static long countLinesOfCode(File file) throws IOException {
+        long codeLines = 0;
+        boolean inMultiLineComment = false;
+        
+        List<String> lines = Files.readAllLines(file.toPath());
+        for (String line : lines) {
+            String trimmedLine = line.trim();
+            
+            // 跳过空行
+            if (trimmedLine.isEmpty()) {
+                continue;
+            }
+            
+            // 处理多行注释 /* ... */
+            if (inMultiLineComment) {
+                if (trimmedLine.contains("*/")) {
+                    inMultiLineComment = false;
+                }
+                continue;
+            }
+            
+            if (trimmedLine.contains("/*")) {
+                inMultiLineComment = true;
+                if (trimmedLine.contains("*/")) {
+                    inMultiLineComment = false;
+                }
+                continue;
+            }
+            
+            // 跳过单行注释 //
+            if (trimmedLine.startsWith("//")) {
+                continue;
+            }
+            
+            // 计数代码行
+            codeLines++;
+        }
+        
+        return codeLines;
     }
 }
