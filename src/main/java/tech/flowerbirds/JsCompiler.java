@@ -308,9 +308,9 @@ public class JsCompiler {
             if (filePath.trim().isEmpty() || filePath.trim().startsWith("#")) {
                 continue;
             }
-            
+            String relativeFilePath = filePath.trim().replaceFirst("^/", "").replaceFirst("^\\\\", "");
             // 构造完整路径
-            Path fullPath = rootPath.resolve(filePath.trim());
+            Path fullPath = rootPath.resolve(relativeFilePath.trim());
             File jsFile = fullPath.toFile();
             
             // 检查文件是否存在且是JS文件
