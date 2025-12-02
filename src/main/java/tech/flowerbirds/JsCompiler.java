@@ -152,17 +152,17 @@ public class JsCompiler {
         System.out.println("注意: -dir 和 -file 参数不能同时使用");
         System.out.println();
         System.out.println("使用示例:");
-        System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources");
-        System.out.println("  java -jar JsCompiler.jar -file=filelist.txt -root=/project/root");
-        System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources -keywords=echarts,chart");
-        System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources -size=100");
-        System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources -keywords=echarts -size=50");
-        System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources -cloc");
-        System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources -cloc=after");
-        System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources -cloc=before");
-        System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources -cloc=all");
-        System.out.println("  java -jar JsCompiler.jar -dir=src/main/resources -keywords=echarts -cloc=all");
-        System.out.println("  java -jar JsCompiler.jar -help");
+        System.out.println("  java -jar closure-compiler-tool-xxx.jar -dir=src/main/resources");
+        System.out.println("  java -jar closure-compiler-tool-xxx.jar -file=filelist.txt -root=/project/root");
+        System.out.println("  java -jar closure-compiler-tool-xxx.jar -dir=src/main/resources -keywords=echarts,chart");
+        System.out.println("  java -jar closure-compiler-tool-xxx.jar -dir=src/main/resources -size=100");
+        System.out.println("  java -jar closure-compiler-tool-xxx.jar -dir=src/main/resources -keywords=echarts -size=50");
+        System.out.println("  java -jar closure-compiler-tool-xxx.jar -dir=src/main/resources -cloc");
+        System.out.println("  java -jar closure-compiler-tool-xxx.jar -dir=src/main/resources -cloc=after");
+        System.out.println("  java -jar closure-compiler-tool-xxx.jar -dir=src/main/resources -cloc=before");
+        System.out.println("  java -jar closure-compiler-tool-xxx.jar -dir=src/main/resources -cloc=all");
+        System.out.println("  java -jar closure-compiler-tool-xxx.jar -dir=src/main/resources -keywords=echarts -cloc=all");
+        System.out.println("  java -jar closure-compiler-tool-xxx.jar -help");
     }
 
     /**
