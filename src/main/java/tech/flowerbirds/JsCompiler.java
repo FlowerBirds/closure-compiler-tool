@@ -6,6 +6,7 @@ import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -76,7 +77,9 @@ public class JsCompiler {
             int failCount = 0;
             long totalBeforeLineCount = 0;  // 压缩前总行数
             long totalAfterLineCount = 0;   // 压缩后总行数
-            
+            // 用于记录编译失败的文件路径
+            List<String> failedFiles = new ArrayList<>();
+
             for (File srcFile : jsFiles) {
                 LineCountResult result = compileAndOverwrite(srcFile);
                 if (result != null) {
@@ -85,8 +88,9 @@ public class JsCompiler {
                         successCount++;
                     } else {
                         failCount++;
+                        failedFiles.add(srcFile.getAbsolutePath());
                     }
-                    
+
                     // 根据CLOC_MODE输出统计信息（不管编译是否成功）
                     if (!CLOC_MODE.isEmpty()) {
                         if (CLOC_MODE.equals("before")) {
@@ -103,6 +107,7 @@ public class JsCompiler {
                     }
                 } else {
                     failCount++;
+                    failedFiles.add(srcFile.getAbsolutePath());
                 }
             }
 
@@ -121,6 +126,18 @@ public class JsCompiler {
                     long reduction = totalBeforeLineCount - totalAfterLineCount;
                     double ratio = totalBeforeLineCount > 0 ? (reduction * 100.0 / totalBeforeLineCount) : 0;
                     System.out.println("📈 压缩率: " + reduction + " 行 (" + String.format("%.2f%%", ratio) + ")");
+                }
+            }
+
+            // 如果有编译失败的文件，将路径写入 error_files.txt（位于当前工作目录）
+            if (!failedFiles.isEmpty()) {
+                Path errorFile = Paths.get("error_files.txt");
+                try {
+                    Files.write(errorFile, failedFiles, StandardCharsets.UTF_8,
+                            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                    System.out.println("📌 编译失败文件列表已保存到: " + errorFile.toAbsolutePath());
+                } catch (IOException e) {
+                    System.err.println("⚠️ 无法写入 error_files.txt: " + e.getMessage());
                 }
             }
 
